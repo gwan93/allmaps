@@ -1,24 +1,34 @@
-import logo from './logo.svg';
 import './App.css';
+import Header from './components/Header';
+import Sidebar from './components/Sidebar';
+import MapArea from './components/MapArea';
+import styled from 'styled-components'
+
+const StyledContainer = styled.div`
+  // border: 2px solid orange;
+  display: flex;
+  flex-direction: row;
+  padding: 1em 2em 1em 2em;
+  flex: 1;
+`
+
+const StyledAppContainer = styled.div`
+  // border: 2px solid yellow;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+`
+
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <StyledAppContainer>
+      <Header/>
+      <StyledContainer className="main-container">
+        <Sidebar/>
+        <MapArea/>
+      </StyledContainer>
+    </StyledAppContainer>
   );
 }
 
