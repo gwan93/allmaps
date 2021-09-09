@@ -2,13 +2,14 @@ import styled from 'styled-components'
 import React, { useRef, useEffect, useState } from "react"
 import mapboxgl from "mapbox-gl"
 import './MapArea.css';
+import ElevationProfile from './ElevationProfile';
 
 // Grab the access token from your Mapbox account// I typically like to store sensitive things like this// in a .env file
 mapboxgl.accessToken = process.env.REACT_APP_MAPBOX_TOKEN
 
 const StyledMapArea = styled.div`
   border: 2px solid green;
-  height: 100%;
+  height: 80%;
 `
 
 const StyledMapAreaContainer = styled.div`
@@ -24,6 +25,12 @@ const StyleBar = styled.div`
   position: absolute;
   margin: 12px;
   border-radius: 4px;
+`
+const ElevationToggle = styled.div`
+  border: 2px solid grey;
+  background-color: lightgrey;
+  display: flex;
+  justify-content: center;
 `
 
 // The GeoJSON data for the trail
@@ -49,6 +56,7 @@ export default function MapArea() {
   const [ latitude, setLatitude ] = useState(45.393);
   const [ longitude, setLongitude ]= useState(-75.511);
   const [ zoom, setZoom ] = useState(15);
+  const [ isShowingElevation ,setIsShowingElevation ] = useState(true);
   const mapContainer = useRef(null)
 	const map = useRef(null);
 	// this is where all of our map logic is going to live  
@@ -116,6 +124,11 @@ export default function MapArea() {
       <StyledMapArea id="map" 
         ref={mapContainer}
       />
+
+      <ElevationToggle onClick={() => setIsShowingElevation(!isShowingElevation)}>
+        {isShowingElevation ? "Hide Elevation Profile" : "Show Elevation Profile"}
+      </ElevationToggle>
+      {isShowingElevation && <ElevationProfile trailData={trailData}/>}
 
     </StyledMapAreaContainer>
 
