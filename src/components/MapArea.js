@@ -88,7 +88,7 @@ export default function MapArea() {
       ...DEFAULT_VIEWPORT,
     });
 
-    map.current.on("load", () => {
+    map.current.on("style.load", () => {
       displayDataOnMap(map, trailData);
     });
 
@@ -96,16 +96,8 @@ export default function MapArea() {
   }, []);
 
   const changeStyle = (styleURL) => {
-    if (map.current.getLayer("trailData")) {
-      map.current.removeLayer("trailData");
-    }
-    if (map.current.getSource("trailData")) {
-      map.current.removeSource("trailData");
-    }
     map.current.setStyle(styleURL);
-    map.current.on("style.load", () => {
-      displayDataOnMap(map, trailData);
-    });
+    displayDataOnMap(map, trailData);
   };
 
   return (
