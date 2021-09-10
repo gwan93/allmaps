@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import styled from "styled-components";
 import * as turf from "@turf/turf";
-import CanvasJSReact from "../assets/canvasjs.react.js";
+import CanvasJSReact from "../assets/lib/canvasjs.react.js";
 const { CanvasJSChart } = CanvasJSReact;
 
 const StyledElevationProfile = styled.header`
@@ -14,7 +14,7 @@ const StyledElevationProfile = styled.header`
 export default function ElevationProfile(props) {
   const { trailData } = props;
 
-  // Returns an array of objects containing information about a coordinates
+  // Returns an array of objects containing information about a coordinate's
   // elevation and distance from the beginning of the trail
   const calculateCoordinateDistances = (coordinateData) => {
     const output = [];
@@ -22,12 +22,12 @@ export default function ElevationProfile(props) {
       const previousCoordinate = coordinateData.geometry.coordinates[0][i - 1];
       const currentCoordinate = coordinateData.geometry.coordinates[0][i];
       const distanceFromBeginning =
-      i === 0
-      ? 0
-      : output[i - 1].x +
-      turf.distance(previousCoordinate, currentCoordinate, {
-        units: "kilometers",
-      });
+        i === 0
+        ? 0
+        : output[i - 1].x +
+        turf.distance(previousCoordinate, currentCoordinate, {
+          units: "kilometers",
+        });
       output.push({ 
         x: distanceFromBeginning,
         y: currentCoordinate[2], // elevation of the coordinate
@@ -37,9 +37,6 @@ export default function ElevationProfile(props) {
     return output;
   }
   
-  // useMemo is used here to reduce computational resources everytime this component is rendered
-  // The callback within useMemo is invoked only on the first render of this component
-  // and when arguments within the dependency array change
   const pathArray = useMemo(() => calculateCoordinateDistances(trailData), [trailData]);
 
   const options = {
