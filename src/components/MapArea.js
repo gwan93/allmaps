@@ -97,7 +97,6 @@ export default function MapArea() {
 
   const changeStyle = (styleURL) => {
     map.current.setStyle(styleURL);
-    displayDataOnMap(map, trailData);
   };
 
   return (
