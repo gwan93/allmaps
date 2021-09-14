@@ -8,19 +8,20 @@ const StyledSidebar = styled.div`
   justify-content: center;
   align-items: center;
 `
-const getAllFileNames = () => {
-  return fetch('data/trails/all-trails.json');
+
+const getTrails = async () => {
+  return fetch('data/trails/all-trails.json')
+  .then(res => res.json())
 };
 
 
 export default function Sidebar() {
   useEffect(() => {
-    getAllFileNames()
-    .then(response => response.json())
-    .then(response => {
-      for (const trail of response.trails) {
+    getTrails()
+    .then(data => {
+      data.trails.forEach(trail => {
         console.log(trail.name)
-      }
+      })
     })
   }, []);
 
