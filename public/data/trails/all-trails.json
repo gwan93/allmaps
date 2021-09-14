@@ -1,0 +1,24 @@
+{
+  "trails": [
+    {
+      "name": "Grotto Canyon Trail",
+      "filename": "grotto-canyon-trail.geojson"
+    },
+    {
+      "name": "Ha Ling Peak",
+      "filename": "ha-ling-peak.geojson"
+    },
+    {
+      "name": "Mer Bleue Bog Trail",
+      "filename": "mer-bleue-bog-trail.geojson"
+    },
+    {
+      "name": "Ptarmigan Cirque",
+      "filename": "ptarmigan-cirque.geojson"
+    },
+    {
+      "name": "Sulphur Mountain Trail",
+      "filename": "sulphur-mountain-trail.geojson"
+    }
+  ]
+}
