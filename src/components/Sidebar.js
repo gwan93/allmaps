@@ -26,23 +26,21 @@ const getTrails = async () => {
 };
 
 export default function Sidebar() {
-  const [trailNames, setTrailNames] = useState([]);
+  const [trails, setTrails] = useState([]);
 
   useEffect(() => {
-    getTrails().then((data) => {
-      const namesArr = [];
-      data.trails.forEach((trail) => namesArr.push(trail.name));
-      setTrailNames(namesArr);
+    getTrails().then(({ trails }) => {
+      setTrails(trails);
     });
   }, []);
 
   return (
     <StyledSidebar>
       <StyledTrailListContainer>
-        {trailNames.map((trailName) => {
+        {trails.map((trail) => {
           return (
-            <StyledTrailSelector key={trailName}>
-              {trailName}
+            <StyledTrailSelector key={trail.name}>
+              {trail.name}
             </StyledTrailSelector>
           );
         })}
