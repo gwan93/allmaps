@@ -24,14 +24,7 @@ const StyledAppContainer = styled.div`
 const getTrailData = (trailFilename) => 
   fetch(`data/trails/${trailFilename}`)
   .then((res) => res.json())
-  .then((res) => {
-    for (const feature of res.features) {
-      // Search the array and return the trail data
-      if (feature.geometry.type === "MultiLineString") {
-        return feature;
-      }
-    }
-  })
+  .then((res) => res.features.find((feature) => feature.geometry.type === "MultiLineString"))
 ;
 
 
