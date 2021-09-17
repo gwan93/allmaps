@@ -37,45 +37,46 @@ const StyleBar = styled.div`
   border-radius: 4px;
 `
 
-export default function MapArea(props) {
+export default function MapArea({ selectedTrail }) {
   const mapContainer = useRef(null);
   const map = useRef(null);
-  const { selectedTrail } = props;
     
-  const displayDataOnMap = (map, trail) => {
-    // Grab the trail data from the last element of trail.features
-    const trailData = trail.features[trail.features.length - 1];
-    if (!map.current.getSource("trailData")) {
-      map.current.addSource("trailData", {
-        type: "geojson",
-        data: trailData,
-      });
-    }
-    
-    if (!map.current.getLayer("trailData")) {
-      map.current.addLayer({
-        id: "trailData",
-        type: "line",
-        source: "trailData",
-        layout: {},
-        paint: {
-          "line-color": "#ec2222",
-          "line-width": 2,
-          "line-dasharray": [2, 1],
-        },
-      });
+  const displayDataOnMap = (map, trailData) => {
+    // Do nothing if the passed in trailData is an empty object or undefined
+    // Applicable when the map is first rendered and user has not selected
+    // a trail to display yet
+    if (Object.keys(trailData).length === 0) return;
+
+    map.current.addSource("trailData", {
+      type: "geojson",
+      data: trailData,
+    });
+  
+    map.current.addLayer({
+      id: "trailData",
+      type: "line",
+      source: "trailData",
+      layout: {},
+      paint: {
+        "line-color": "#ec2222",
+        "line-width": 2,
+        "line-dasharray": [2, 1],
+      },
+    });
+  };
+
+  const clearDataFromMap = () => {
+    // Mapbox will throw an error if you try to remove a layer that doesn't exist
+    if (map.current.getLayer("trailData")) {
+      map.current.removeLayer("trailData");
+      map.current.removeSource("trailData");
     }
   };
 
-  const clearDataFromMap = (map) => {
-    map.current.removeLayer("trailData");
-    map.current.removeSource("trailData");
-  };
-
-  const recenterMap = (map, selectedTrail) => {
-    const { bbox } = selectedTrail.features[selectedTrail.features.length - 1].geometry;
+  const flyToTrail = (map, selectedTrail) => {
+    const [east, north, west, south] = selectedTrail.geometry.bbox;
     map.current.fitBounds(
-      [[bbox[2], bbox[1]], [bbox[0], bbox[3]]],
+      [[west, north], [east, south]],
       {
         padding: {top: 20, bottom: 20, left: 30, right: 30},
         linear: true
@@ -91,20 +92,22 @@ export default function MapArea(props) {
       ...DEFAULT_VIEWPORT,
     });
 
-    // Persist data when switching base layers (streets, satellites, etc)
-    map.current.on("style.load", () => {
-      displayDataOnMap(map, selectedTrail)
-    });
-
     return () => map.current.remove();
   }, []);
 
-  // Render trail data based on the trail selected in the sidebar
   useEffect(() => {
-    if (map && map.current.getLayer("trailData")) {
-      clearDataFromMap(map);
+    // Persist data when switching base layers (streets, satellites, etc)
+    map.current.on("style.load", () => {
+      // When style has finished loading, invoke the following:
+      clearDataFromMap();
       displayDataOnMap(map, selectedTrail);
-      recenterMap(map, selectedTrail);
+    });
+    
+    // Render trail data based on the trail selected in the sidebar
+    clearDataFromMap();
+    if (map.current.isStyleLoaded()) {
+      displayDataOnMap(map, selectedTrail);
+      flyToTrail(map, selectedTrail);
     }
   }, [selectedTrail]);
 
