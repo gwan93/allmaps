@@ -25,9 +25,8 @@ const getTrails = async () => {
   return fetch("data/trails/all-trails.json").then((res) => res.json());
 };
 
-export default function Sidebar(props) {
+export default function Sidebar({ trailHandler }) {
   const [trails, setTrails] = useState([]);
-  const { trailHandler } = props;
 
   useEffect(() => {
     getTrails().then(({ trails }) => {
