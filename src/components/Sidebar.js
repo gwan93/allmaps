@@ -25,7 +25,7 @@ const getTrails = async () => {
   return fetch("data/trails/all-trails.json").then((res) => res.json());
 };
 
-export default function Sidebar() {
+export default function Sidebar({ trailHandler }) {
   const [trails, setTrails] = useState([]);
 
   useEffect(() => {
@@ -39,7 +39,7 @@ export default function Sidebar() {
       <StyledTrailListContainer>
         {trails.map((trail) => {
           return (
-            <StyledTrailSelector key={trail.name}>
+            <StyledTrailSelector key={trail.name} onClick={() => trailHandler(trail)}>
               {trail.name}
             </StyledTrailSelector>
           );
