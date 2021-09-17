@@ -5,18 +5,16 @@ import CanvasJSReact from "../assets/lib/canvasjs.react.js";
 const { CanvasJSChart } = CanvasJSReact;
 
 const StyledElevationProfile = styled.header`
-  // border: 2px solid orange;
   display: flex;
   justify-content: center;
   height: 20%;
 `;
 
-export default function ElevationProfile(props) {
-  const { trailData } = props;
-
+export default function ElevationProfile({ selectedTrail }) {
   // Returns an array of objects containing information about a coordinate's
   // elevation and distance from the beginning of the trail
   const calculateCoordinateDistances = (coordinateData) => {
+    if (Object.keys(coordinateData).length === 0) return [];
     const output = [];
     for (let i = 0; i < coordinateData.geometry.coordinates[0].length; i++) {
       const previousCoordinate = coordinateData.geometry.coordinates[0][i - 1];
@@ -37,7 +35,7 @@ export default function ElevationProfile(props) {
     return output;
   }
   
-  const pathArray = useMemo(() => calculateCoordinateDistances(trailData), [trailData]);
+  const pathArray = useMemo(() => calculateCoordinateDistances(selectedTrail), [selectedTrail]);
 
   const options = {
     animationEnabled: true,

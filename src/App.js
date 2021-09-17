@@ -4,6 +4,7 @@ import Header from './components/Header';
 import Sidebar from './components/Sidebar';
 import MapArea from './components/MapArea';
 import styled from 'styled-components'
+import { useState } from 'react';
 
 const StyledContainer = styled.div`
   // border: 2px solid orange;
@@ -20,14 +21,28 @@ const StyledAppContainer = styled.div`
   height: 100vh;
 `
 
+const getTrailData = (trailFilename) => 
+  fetch(`data/trails/${trailFilename}`)
+  .then((res) => res.json())
+  .then((res) => res.features.find((feature) => feature.geometry.type === "MultiLineString"))
+;
+
 
 function App() {
+  const [selectedTrail, setSelectedTrail] = useState({});
+  
+  const trailHandler = (trail) => {
+    getTrailData(trail.filename).then((response) => {
+      setSelectedTrail(response);
+    });
+  };
+  
   return (
     <StyledAppContainer>
       <Header/>
       <StyledContainer className="main-container">
-        <Sidebar/>
-        <MapArea/>
+        <Sidebar trailHandler={trailHandler}/>
+        <MapArea selectedTrail={selectedTrail}/>
       </StyledContainer>
     </StyledAppContainer>
   );

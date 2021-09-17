@@ -5,8 +5,8 @@ import './MapArea.css';
 import ElevationProfile from './ElevationProfile';
 
 const DEFAULT_VIEWPORT = {
-  center: [-75.511, 45.393],
-  zoom: 15
+  center: [-105.91641452832604, 55.50351451356939],
+  zoom: 2
 }
 
 const BASE_LAYERS_ARRAY = [
@@ -37,13 +37,6 @@ const StyleBar = styled.div`
   margin: 12px;
   border-radius: 4px;
 `
-const ElevationToggle = styled.div`
-  border: 2px solid grey;
-  background-color: lightgrey;
-  display: flex;
-  justify-content: center;
-`
-
 // The GeoJSON data for the trail
 // This data is mocked
 // In the future make a call to an API to retrieve this data
@@ -62,33 +55,52 @@ const trailData = {
 
 
 export default function MapArea() {
-  const [ isShowingElevation ,setIsShowingElevation ] = useState(true);
-  const mapContainer = useRef(null)
-	const map = useRef(null);
+  const mapContainer = useRef(null);
+  const map = useRef(null);
 
   const displayDataOnMap = (map, trailData) => {
-    if (!map.current.getSource("trailData")) {
-      map.current.addSource("trailData", {
-        type: "geojson",
-        data: trailData,
-      });
-    }
+    // Do nothing if the passed in trailData is an empty object or undefined
+    // Applicable when the map is first rendered and user has not selected
+    // a trail to display yet
+    if (Object.keys(trailData).length === 0) return;
 
-    if (!map.current.getLayer("trailData")) {
-      map.current.addLayer({
-        id: "trailData",
-        type: "line",
-        source: "trailData",
-        layout: {},
-        paint: {
-          "line-color": "#ec2222",
-          "line-width": 2,
-          "line-dasharray": [2, 1],
-        },
-      });
+    map.current.addSource("trailData", {
+      type: "geojson",
+      data: trailData,
+    });
+  
+    map.current.addLayer({
+      id: "trailData",
+      type: "line",
+      source: "trailData",
+      layout: {},
+      paint: {
+        "line-color": "#ec2222",
+        "line-width": 2,
+        "line-dasharray": [2, 1],
+      },
+    });
+  };
+
+  const clearDataFromMap = () => {
+    // Mapbox will throw an error if you try to remove a layer that doesn't exist
+    if (map.current.getLayer("trailData")) {
+      map.current.removeLayer("trailData");
+      map.current.removeSource("trailData");
     }
   };
 
+  const flyToTrail = (map, selectedTrail) => {
+    const [east, north, west, south] = selectedTrail.geometry.bbox;
+    map.current.fitBounds(
+      [[west, north], [east, south]],
+      {
+        padding: {top: 20, bottom: 20, left: 30, right: 30},
+        linear: true
+      }
+    )
+  };
+  
   useEffect(() => {
     // Render a map and configure it
     map.current = new mapboxgl.Map({
@@ -97,12 +109,25 @@ export default function MapArea() {
       ...DEFAULT_VIEWPORT,
     });
 
-    map.current.on("style.load", () => {
-      displayDataOnMap(map, trailData);
-    });
-
     return () => map.current.remove();
   }, []);
+
+  useEffect(() => {
+    // Persist data when switching base layers (streets, satellites, etc)
+    map.current.on("style.load", () => {
+      // When style has finished loading, invoke the following:
+      clearDataFromMap();
+      displayDataOnMap(map, selectedTrail);
+    });
+    
+    // Render trail data based on the trail selected in the sidebar
+    clearDataFromMap();
+    if (map.current.isStyleLoaded()) {
+      displayDataOnMap(map, selectedTrail);
+      flyToTrail(map, selectedTrail);
+    }
+  }, [selectedTrail]);
+
 
   const changeStyle = (styleURL) => {
     map.current.setStyle(styleURL);
