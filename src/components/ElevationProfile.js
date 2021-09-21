@@ -16,22 +16,22 @@ export default function ElevationProfile({ selectedTrail }) {
   const calculateCoordinateDistances = (coordinateData) => {
     if (Object.keys(coordinateData).length === 0) return [];
     const output = [];
-    for (let i = 0; i < coordinateData.geometry.coordinates[0].length; i++) {
-      const previousCoordinate = coordinateData.geometry.coordinates[0][i - 1];
-      const currentCoordinate = coordinateData.geometry.coordinates[0][i];
+    const coordinateArr = coordinateData.geometry.coordinates[0];
+    coordinateArr.forEach((coordinate, i) => {
+      const previousCoordinate = i === 0 ? coordinate : coordinateArr[i - 1];
       const distanceFromBeginning =
         i === 0
-        ? 0
-        : output[i - 1].x +
-        turf.distance(previousCoordinate, currentCoordinate, {
-          units: "kilometers",
-        });
-      output.push({ 
+          ? 0
+          : output[i - 1].x +
+            turf.distance(previousCoordinate, coordinate, {
+              units: "kilometers",
+            });
+      output.push({
         x: distanceFromBeginning,
-        y: currentCoordinate[2], // elevation of the coordinate
+        y: coordinate[2],
         toolTipContent: "Elevation: {y}m"
-      });
-    }
+      })
+    })
     return output;
   }
   
