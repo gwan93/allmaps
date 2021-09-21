@@ -1,7 +1,8 @@
 import styled from 'styled-components'
-import React, { useRef, useEffect } from "react"
+import React, { useRef, useEffect, useState } from "react"
 import mapboxgl from "mapbox-gl"
 import './MapArea.css';
+import ElevationProfile from './ElevationProfile';
 
 const DEFAULT_VIEWPORT = {
   center: [-105.91641452832604, 55.50351451356939],
@@ -20,7 +21,7 @@ mapboxgl.accessToken = process.env.REACT_APP_MAPBOX_TOKEN
 
 const StyledMapArea = styled.div`
   border: 2px solid green;
-  height: 100%;
+  height: 80%;
 `
 const StyledMapAreaContainer = styled.div`
   // border: 2px solid purple;
@@ -37,10 +38,18 @@ const StyleBar = styled.div`
   border-radius: 4px;
 `
 
+const ElevationToggle = styled.div`
+  border: 2px solid grey;
+  background-color: lightgrey;
+  display: flex;
+  justify-content: center;
+`
+
 export default function MapArea({ selectedTrail }) {
   const mapContainer = useRef(null);
   const map = useRef(null);
-    
+  const [ isShowingElevation, setIsShowingElevation] = useState();
+
   const displayDataOnMap = (map, trailData) => {
     // Do nothing if the passed in trailData is an empty object or undefined
     // Applicable when the map is first rendered and user has not selected
@@ -137,7 +146,15 @@ export default function MapArea({ selectedTrail }) {
           );
         })}
       </StyleBar>
-      <StyledMapArea id="map" ref={mapContainer} />
+      <StyledMapArea id="map" 
+        ref={mapContainer}
+      />
+
+      <ElevationToggle onClick={() => setIsShowingElevation(!isShowingElevation)}>
+        {isShowingElevation ? "Hide Elevation Profile" : "Show Elevation Profile"}
+      </ElevationToggle>
+      {isShowingElevation && <ElevationProfile selectedTrail={selectedTrail}/>}
+
     </StyledMapAreaContainer>
   );
 }
