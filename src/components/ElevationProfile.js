@@ -48,6 +48,17 @@ export default function ElevationProfile({ selectedTrail, setMouseOverCoords }) 
     axisX: {
       title: "Distance",
       suffix: "km",
+      crosshair: {
+        enabled: true,
+        snapToDataPoint: true,
+        thickness: 0,
+        label: "",
+        updated: (e) => {
+          pathArray.find(coordinate => {
+            return coordinate.x === e.value ? coordinate.mouseover() : null
+          })
+        }
+      }
     },
     axisY: {
       title: "Elevation",
