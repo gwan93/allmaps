@@ -10,7 +10,7 @@ const StyledElevationProfile = styled.header`
   height: 20%;
 `;
 
-export default function ElevationProfile({ selectedTrail }) {
+export default function ElevationProfile({ selectedTrail, setMouseOverCoords }) {
   // Returns an array of objects containing information about a coordinate's
   // elevation and distance from the beginning of the trail
   const calculateCoordinateDistances = (coordinateData) => {
@@ -29,7 +29,8 @@ export default function ElevationProfile({ selectedTrail }) {
       output.push({
         x: distanceFromBeginning,
         y: coordinate[2],
-        toolTipContent: "Elevation: {y}m"
+        toolTipContent: "Elevation: {y}m",
+        mouseover: () => setMouseOverCoords(coordinate)
       })
     })
     return output;
@@ -47,6 +48,17 @@ export default function ElevationProfile({ selectedTrail }) {
     axisX: {
       title: "Distance",
       suffix: "km",
+      crosshair: {
+        enabled: true,
+        snapToDataPoint: true,
+        thickness: 0,
+        label: "",
+        updated: (e) => {
+          pathArray.find(coordinate => {
+            return coordinate.x === e.value ? coordinate.mouseover() : null
+          })
+        }
+      }
     },
     axisY: {
       title: "Elevation",

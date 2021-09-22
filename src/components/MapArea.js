@@ -48,7 +48,10 @@ const ElevationToggle = styled.div`
 export default function MapArea({ selectedTrail }) {
   const mapContainer = useRef(null);
   const map = useRef(null);
-  const [ isShowingElevation, setIsShowingElevation] = useState();
+  const marker = useRef(null);
+  const [isShowingElevation, setIsShowingElevation] = useState();
+  const [mouseOverCoords, setMouseOverCoords] = useState([]);
+
 
   const displayDataOnMap = (map, trailData) => {
     // Do nothing if the passed in trailData is an empty object or undefined
@@ -92,6 +95,13 @@ export default function MapArea({ selectedTrail }) {
       }
     )
   };
+
+  const moveMarker = (map, selectedTrail) => {
+    if (Object.keys(selectedTrail).length === 0) return;
+    // Initialize marker at the trail head
+    const trailHeadCoord = selectedTrail.geometry.coordinates[0][0];
+    marker.current.setLngLat(trailHeadCoord).addTo(map.current);
+  }
   
   useEffect(() => {
     // Render a map and configure it
@@ -101,7 +111,12 @@ export default function MapArea({ selectedTrail }) {
       ...DEFAULT_VIEWPORT,
     });
 
-    return () => map.current.remove();
+    marker.current = new mapboxgl.Marker()
+
+    return () => {
+      map.current.remove();
+      marker.current.remove();
+    };
   }, []);
 
   useEffect(() => {
@@ -110,15 +125,21 @@ export default function MapArea({ selectedTrail }) {
       // When style has finished loading, invoke the following:
       clearDataFromMap();
       displayDataOnMap(map, selectedTrail);
+      moveMarker(map, selectedTrail);
     });
     
     // Render trail data based on the trail selected in the sidebar
     clearDataFromMap();
     if (map.current.isStyleLoaded()) {
       displayDataOnMap(map, selectedTrail);
+      moveMarker(map, selectedTrail);
       flyToTrail(map, selectedTrail);
     }
   }, [selectedTrail]);
+
+  useEffect(() => {
+    if (map.current.isStyleLoaded()) marker.current.setLngLat(mouseOverCoords)
+  }, [mouseOverCoords])
 
 
   const changeStyle = (styleURL) => {
@@ -153,7 +174,7 @@ export default function MapArea({ selectedTrail }) {
       <ElevationToggle onClick={() => setIsShowingElevation(!isShowingElevation)}>
         {isShowingElevation ? "Hide Elevation Profile" : "Show Elevation Profile"}
       </ElevationToggle>
-      {isShowingElevation && <ElevationProfile selectedTrail={selectedTrail}/>}
+      {isShowingElevation && <ElevationProfile selectedTrail={selectedTrail} setMouseOverCoords={setMouseOverCoords}/>}
 
     </StyledMapAreaContainer>
   );
