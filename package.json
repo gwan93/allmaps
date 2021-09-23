@@ -41,6 +41,7 @@
     "@sparkgeo/eslint-config-react": "^0.9.0",
     "babel-eslint": "^10.1.0",
     "eslint": "^7.32.0",
-    "eslint-plugin-react": "^7.26.0"
+    "eslint-plugin-react": "^7.26.0",
+    "husky": "^7.0.2"
   }
 }
