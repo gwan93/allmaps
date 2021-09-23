@@ -1,6 +1,8 @@
 import styled from 'styled-components'
 import React, { useRef, useEffect, useState } from "react"
 import mapboxgl from "mapbox-gl"
+import PropTypes from 'prop-types';
+
 import './MapArea.css';
 import ElevationProfile from './ElevationProfile';
 
@@ -179,3 +181,7 @@ export default function MapArea({ selectedTrail }) {
     </StyledMapAreaContainer>
   );
 }
+
+MapArea.propTypes = {
+  selectedTrail: PropTypes.object,
+};

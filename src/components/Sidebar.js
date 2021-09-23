@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import styled from "styled-components";
+import PropTypes from 'prop-types';
 
 const StyledSidebar = styled.div`
   border: 2px solid blue;
@@ -48,3 +49,7 @@ export default function Sidebar({ trailHandler }) {
     </StyledSidebar>
   );
 }
+
+Sidebar.propTypes = {
+  trailHandler: PropTypes.func,
+};

@@ -1,6 +1,8 @@
-import { useMemo } from 'react';
+import React, { useMemo } from 'react';
 import styled from "styled-components";
 import * as turf from "@turf/turf";
+import PropTypes from 'prop-types';
+
 import CanvasJSReact from "../assets/lib/canvasjs.react.js";
 const { CanvasJSChart } = CanvasJSReact;
 
@@ -79,3 +81,8 @@ export default function ElevationProfile({ selectedTrail, setMouseOverCoords }) 
     </StyledElevationProfile>
   );
 }
+
+ElevationProfile.propTypes = {
+  selectedTrail: PropTypes.object,
+  setMouseOverCoords: PropTypes.func,
+};
