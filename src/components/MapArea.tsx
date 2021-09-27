@@ -1,4 +1,5 @@
 import styled from 'styled-components'
+import PropTypes from 'prop-types';
 import React, { useRef, useEffect, useState, RefObject } from "react"
 import mapboxgl, { Map, Marker, LngLatLike } from "mapbox-gl"
 import { Feature } from "geojson";
@@ -7,8 +8,8 @@ import ElevationProfile from './ElevationProfile';
 import { MultiLineString } from '@turf/turf';
 
 interface Viewport {
-  center: LngLatLike
-  zoom: number
+  center: LngLatLike;
+  zoom: number;
 }
 
 const DEFAULT_VIEWPORT: Viewport = {
@@ -195,3 +196,7 @@ export default function MapArea({ selectedTrail }: Props) {
     </StyledMapAreaContainer>
   );
 }
+
+MapArea.propTypes = {
+  selectedTrail: PropTypes.object,
+};

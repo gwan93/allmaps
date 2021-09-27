@@ -4,7 +4,7 @@ import Header from './components/Header';
 import Sidebar from './components/Sidebar';
 import MapArea from './components/MapArea';
 import styled from 'styled-components'
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Feature, MultiLineString } from "geojson";
 
 
