@@ -22,12 +22,21 @@ const StyledTrailSelector = styled.div`
   border-radius: 5px;
 `;
 
-const getTrails = async () => {
+const getTrails = () => {
   return fetch("data/trails/all-trails.json").then((res) => res.json());
 };
 
-export default function Sidebar({ trailHandler }) {
-  const [trails, setTrails] = useState([]);
+interface Props {
+  trailHandler: (trail: Trail) => void;
+}
+
+interface Trail {
+  name: string;
+  filename: string;
+}
+
+export default function Sidebar({ trailHandler }: Props) {
+  const [trails, setTrails] = useState<[]>([]);
 
   useEffect(() => {
     getTrails().then(({ trails }) => {
@@ -38,7 +47,7 @@ export default function Sidebar({ trailHandler }) {
   return (
     <StyledSidebar>
       <StyledTrailListContainer>
-        {trails.map((trail) => {
+        {trails.map((trail: Trail) => {
           return (
             <StyledTrailSelector key={trail.name} onClick={() => trailHandler(trail)}>
               {trail.name}

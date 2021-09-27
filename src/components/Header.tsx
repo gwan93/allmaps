@@ -8,7 +8,6 @@ const StyledHeader = styled.header`
   justify-content: center;
 `
 
-
 export default function Header() {
   return (
     <StyledHeader>

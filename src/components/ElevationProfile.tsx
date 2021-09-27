@@ -3,6 +3,8 @@ import styled from "styled-components";
 import * as turf from "@turf/turf";
 import PropTypes from 'prop-types';
 
+import { Feature, MultiLineString, Position } from "geojson";
+import { LngLatLike } from "mapbox-gl"
 import CanvasJSReact from "../assets/lib/canvasjs.react.js";
 const { CanvasJSChart } = CanvasJSReact;
 
@@ -12,16 +14,35 @@ const StyledElevationProfile = styled.header`
   height: 20%;
 `;
 
-export default function ElevationProfile({ selectedTrail, setMouseOverCoords }) {
+interface Props {
+  selectedTrail: Feature<MultiLineString> | undefined;
+  setMouseOverCoords: (coordinate: LngLatLike) => void;
+}
+
+interface OutputElements {
+  x: number;
+  y: number;
+  toolTipContent: string;
+  mouseover: () => void;
+}
+
+interface Event {
+  chart: {};
+  crosshair: {};
+  axis: string;
+  value: number;
+}
+
+export default function ElevationProfile({ selectedTrail, setMouseOverCoords }: Props) {
   // Returns an array of objects containing information about a coordinate's
   // elevation and distance from the beginning of the trail
-  const calculateCoordinateDistances = (coordinateData) => {
-    if (Object.keys(coordinateData).length === 0) return [];
-    const output = [];
-    const coordinateArr = coordinateData.geometry.coordinates[0];
-    coordinateArr.forEach((coordinate, i) => {
-      const previousCoordinate = i === 0 ? coordinate : coordinateArr[i - 1];
-      const distanceFromBeginning =
+  const calculateCoordinateDistances = (): OutputElements[] => {
+    const output: OutputElements[] = [];
+    if (selectedTrail === undefined) return output;
+    const coordinateArr: Position[] = selectedTrail.geometry.coordinates[0];
+    coordinateArr.forEach((coordinate: any, i) => {
+      const previousCoordinate: any = i === 0 ? coordinate : coordinateArr[i - 1];
+      const distanceFromBeginning: number =
         i === 0
           ? 0
           : output[i - 1].x +
@@ -38,7 +59,7 @@ export default function ElevationProfile({ selectedTrail, setMouseOverCoords }) 
     return output;
   }
   
-  const pathArray = useMemo(() => calculateCoordinateDistances(selectedTrail), [selectedTrail]);
+  const pathArray = useMemo(() => calculateCoordinateDistances(), [selectedTrail]);
 
   const options = {
     animationEnabled: true,
@@ -55,7 +76,7 @@ export default function ElevationProfile({ selectedTrail, setMouseOverCoords }) 
         snapToDataPoint: true,
         thickness: 0,
         label: "",
-        updated: (e) => {
+        updated: (e: Event) => {
           pathArray.find(coordinate => {
             return coordinate.x === e.value ? coordinate.mouseover() : null
           })

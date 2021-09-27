@@ -1,32 +1,32 @@
 import styled from 'styled-components'
-import React, { useRef, useEffect, useState } from "react"
-import mapboxgl from "mapbox-gl"
 import PropTypes from 'prop-types';
-
+import React, { useRef, useEffect, useState, RefObject } from "react"
+import mapboxgl, { Map, Marker, LngLatLike } from "mapbox-gl"
+import { Feature } from "geojson";
 import './MapArea.css';
 import ElevationProfile from './ElevationProfile';
+import { MultiLineString } from '@turf/turf';
 
-const DEFAULT_VIEWPORT = {
+interface Viewport {
+  center: LngLatLike;
+  zoom: number;
+}
+
+const DEFAULT_VIEWPORT: Viewport = {
   center: [-105.91641452832604, 55.50351451356939],
   zoom: 2
 }
-
 const BASE_LAYERS_ARRAY = [
   {label: 'Outdoors', value: 'outdoors-v11'},
   {label: 'Streets', value: 'streets-v11'},
   {label: 'Light', value: 'light-v10'},
   {label: 'Dark', value: 'dark-v10'}
 ]
-
-// Grab the access token from your Mapbox account// I typically like to store sensitive things like this// in a .env file
-mapboxgl.accessToken = process.env.REACT_APP_MAPBOX_TOKEN
-
 const StyledMapArea = styled.div`
   border: 2px solid green;
   height: 80%;
 `
 const StyledMapAreaContainer = styled.div`
-  // border: 2px solid purple;
   flex: 1;
 `
 const StyleBar = styled.div`
@@ -39,7 +39,6 @@ const StyleBar = styled.div`
   margin: 12px;
   border-radius: 4px;
 `
-
 const ElevationToggle = styled.div`
   border: 2px solid grey;
   background-color: lightgrey;
@@ -47,29 +46,32 @@ const ElevationToggle = styled.div`
   justify-content: center;
 `
 
-export default function MapArea({ selectedTrail }) {
-  const mapContainer = useRef(null);
-  const map = useRef(null);
-  const marker = useRef(null);
-  const [isShowingElevation, setIsShowingElevation] = useState();
-  const [mouseOverCoords, setMouseOverCoords] = useState([]);
+interface Props {
+  selectedTrail: Feature<MultiLineString> | undefined;
+}
 
+export default function MapArea({ selectedTrail }: Props) {
+  const mapContainer = useRef<HTMLDivElement | string>('');
+  const map = useRef<Map | null>(null);
+  const marker = useRef<Marker | null>(null);
+  const [isShowingElevation, setIsShowingElevation] = useState<boolean>(true);
+  const [mouseOverCoords, setMouseOverCoords] = useState<LngLatLike | undefined>(undefined);
 
-  const displayDataOnMap = (map, trailData) => {
+  const displayDataOnMap = () => {
     // Do nothing if the passed in trailData is an empty object or undefined
     // Applicable when the map is first rendered and user has not selected
     // a trail to display yet
-    if (Object.keys(trailData).length === 0) return;
-
-    map.current.addSource("trailData", {
+    if (selectedTrail === undefined) return;
+    if (!map.current) return;
+    map.current.addSource("selectedTrail", {
       type: "geojson",
-      data: trailData,
+      data: selectedTrail,
     });
   
     map.current.addLayer({
-      id: "trailData",
+      id: "selectedTrail",
       type: "line",
-      source: "trailData",
+      source: "selectedTrail",
       layout: {},
       paint: {
         "line-color": "#ec2222",
@@ -80,15 +82,17 @@ export default function MapArea({ selectedTrail }) {
   };
 
   const clearDataFromMap = () => {
+    if (map.current === null) return;
     // Mapbox will throw an error if you try to remove a layer that doesn't exist
-    if (map.current.getLayer("trailData")) {
-      map.current.removeLayer("trailData");
-      map.current.removeSource("trailData");
+    if (map.current.getLayer("selectedTrail")) {
+      map.current.removeLayer("selectedTrail");
+      map.current.removeSource("selectedTrail");
     }
   };
 
-  const flyToTrail = (map, selectedTrail) => {
-    const [east, north, west, south] = selectedTrail.geometry.bbox;
+  const flyToTrail = () => {
+    if (map.current === null) return;
+    const [east, north, west, south] = selectedTrail?.geometry.bbox as number[];
     map.current.fitBounds(
       [[west, north], [east, south]],
       {
@@ -98,16 +102,19 @@ export default function MapArea({ selectedTrail }) {
     )
   };
 
-  const moveMarker = (map, selectedTrail) => {
-    if (Object.keys(selectedTrail).length === 0) return;
+  const moveMarker = () => {
+    if (selectedTrail === undefined) return;
     // Initialize marker at the trail head
     const trailHeadCoord = selectedTrail.geometry.coordinates[0][0];
-    marker.current.setLngLat(trailHeadCoord).addTo(map.current);
+    if (map.current) {
+      marker.current?.setLngLat(trailHeadCoord as LngLatLike).addTo(map.current);
+    }
   }
   
   useEffect(() => {
     // Render a map and configure it
     map.current = new mapboxgl.Map({
+      accessToken: process.env.REACT_APP_MAPBOX_TOKEN,
       container: mapContainer.current,
       style: "mapbox://styles/mapbox/outdoors-v11",
       ...DEFAULT_VIEWPORT,
@@ -116,43 +123,45 @@ export default function MapArea({ selectedTrail }) {
     marker.current = new mapboxgl.Marker()
 
     return () => {
-      map.current.remove();
-      marker.current.remove();
+      map.current?.remove();
+      marker!.current?.remove();
     };
   }, []);
 
   useEffect(() => {
     // Persist data when switching base layers (streets, satellites, etc)
-    map.current.on("style.load", () => {
+    map.current?.on("style.load", () => {
       // When style has finished loading, invoke the following:
       clearDataFromMap();
-      displayDataOnMap(map, selectedTrail);
-      moveMarker(map, selectedTrail);
+      displayDataOnMap();
+      moveMarker();
     });
     
-    // Render trail data based on the trail selected in the sidebar
     clearDataFromMap();
-    if (map.current.isStyleLoaded()) {
-      displayDataOnMap(map, selectedTrail);
-      moveMarker(map, selectedTrail);
-      flyToTrail(map, selectedTrail);
+    // Render trail data based on the trail selected in the sidebar
+    if (map.current?.isStyleLoaded()) {
+      displayDataOnMap();
+      moveMarker();
+      flyToTrail();
     }
   }, [selectedTrail]);
 
   useEffect(() => {
-    if (map.current.isStyleLoaded()) marker.current.setLngLat(mouseOverCoords)
+    if (map.current?.isStyleLoaded()) marker.current?.setLngLat(mouseOverCoords as LngLatLike)
   }, [mouseOverCoords])
 
 
-  const changeStyle = (styleURL) => {
-    map.current.setStyle(styleURL);
+  const changeStyle = (styleURL: string) => {
+    map.current?.setStyle(styleURL);
   };
 
   return (
     <StyledMapAreaContainer>
       <StyleBar
         className="mapStyleBar"
-        onChange={(e) => changeStyle(e.target.value)}
+        onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+          changeStyle(e.target.value)
+        }
       >
         {BASE_LAYERS_ARRAY.map((baselayer, index) => {
           return (
@@ -169,15 +178,21 @@ export default function MapArea({ selectedTrail }) {
           );
         })}
       </StyleBar>
-      <StyledMapArea id="map" 
-        ref={mapContainer}
-      />
+      <StyledMapArea id="map" ref={mapContainer as RefObject<HTMLDivElement>} />
 
-      <ElevationToggle onClick={() => setIsShowingElevation(!isShowingElevation)}>
-        {isShowingElevation ? "Hide Elevation Profile" : "Show Elevation Profile"}
+      <ElevationToggle
+        onClick={() => setIsShowingElevation(!isShowingElevation)}
+      >
+        {isShowingElevation
+          ? "Hide Elevation Profile"
+          : "Show Elevation Profile"}
       </ElevationToggle>
-      {isShowingElevation && <ElevationProfile selectedTrail={selectedTrail} setMouseOverCoords={setMouseOverCoords}/>}
-
+      {isShowingElevation && (
+        <ElevationProfile
+          selectedTrail={selectedTrail}
+          setMouseOverCoords={setMouseOverCoords}
+        />
+      )}
     </StyledMapAreaContainer>
   );
 }

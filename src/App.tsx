@@ -5,9 +5,10 @@ import Sidebar from './components/Sidebar';
 import MapArea from './components/MapArea';
 import styled from 'styled-components'
 import React, { useState } from 'react';
+import { Feature, MultiLineString } from "geojson";
+
 
 const StyledContainer = styled.div`
-  // border: 2px solid orange;
   display: flex;
   flex-direction: row;
   padding: 1em 2em 1em 2em;
@@ -15,23 +16,26 @@ const StyledContainer = styled.div`
 `
 
 const StyledAppContainer = styled.div`
-  // border: 2px solid yellow;
   display: flex;
   flex-direction: column;
   height: 100vh;
 `
 
-const getTrailData = (trailFilename) => 
+interface Trail {
+  name: string;
+  filename: string;
+}
+
+const getTrailData = (trailFilename: string) => 
   fetch(`data/trails/${trailFilename}`)
   .then((res) => res.json())
-  .then((res) => res.features.find((feature) => feature.geometry.type === "MultiLineString"))
+  .then((res) => res.features.find((feature: Feature) => feature.geometry.type === "MultiLineString"))
 ;
 
-
 function App() {
-  const [selectedTrail, setSelectedTrail] = useState({});
+  const [selectedTrail, setSelectedTrail] = useState<Feature<MultiLineString> | undefined>(undefined);
   
-  const trailHandler = (trail) => {
+  const trailHandler = (trail: Trail) => {
     getTrailData(trail.filename).then((response) => {
       setSelectedTrail(response);
     });
