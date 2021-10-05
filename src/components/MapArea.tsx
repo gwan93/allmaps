@@ -11,6 +11,10 @@ interface Viewport {
   center: LngLatLike;
   zoom: number;
 }
+interface Props {
+  selectedTrail: Feature<MultiLineString> | undefined;
+  searchResult: any;
+}
 
 const DEFAULT_VIEWPORT: Viewport = {
   center: [-105.91641452832604, 55.50351451356939],
@@ -23,11 +27,14 @@ const BASE_LAYERS_ARRAY = [
   {label: 'Dark', value: 'dark-v10'}
 ]
 const StyledMapArea = styled.div`
-  border: 2px solid green;
-  height: 80%;
+  // display: flex;
+  // flex-direction: row;
+  // flex-grow: 1
+  height: 78vh;
 `
 const StyledMapAreaContainer = styled.div`
   flex: 1;
+  height: 95vh;
 `
 const StyleBar = styled.div`
   border: 1px solid black;
@@ -39,24 +46,31 @@ const StyleBar = styled.div`
   margin: 12px;
   border-radius: 4px;
 `
-const ElevationToggle = styled.div`
-  border: 2px solid grey;
-  background-color: lightgrey;
-  display: flex;
-  justify-content: center;
-`
+// const ElevationToggle = styled.div`
+//   border: 2px solid lightgrey;
+//   background-color: white;
+//   border-radius: 5px;
+//   height: 2em;
+//   margin-top: 5px;
+//   display: flex;
+//   justify-content: center;
+//   align-items: center;
+//   &:hover {
+//     border-color: #75cff0; 
+//     background-color: #75cff0;
+//     cursor: pointer;
+//   }
+// `
 
-interface Props {
-  selectedTrail: Feature<MultiLineString> | undefined;
-}
-
-export default function MapArea({ selectedTrail }: Props) {
+export default function MapArea({ selectedTrail, searchResult }: Props) {
   const mapContainer = useRef<HTMLDivElement | string>('');
   const map = useRef<Map | null>(null);
   const marker = useRef<Marker | null>(null);
-  const [isShowingElevation, setIsShowingElevation] = useState<boolean>(true);
+  // const [isShowingElevation, setIsShowingElevation] = useState<boolean>(true);
   const [mouseOverCoords, setMouseOverCoords] = useState<LngLatLike | undefined>(undefined);
+  const [POIMarkers, setPOIMarkers] = useState<Marker[]>([]);
 
+  // Component Methods/Functions
   const displayDataOnMap = () => {
     // Do nothing if the passed in trailData is an empty object or undefined
     // Applicable when the map is first rendered and user has not selected
@@ -88,18 +102,23 @@ export default function MapArea({ selectedTrail }: Props) {
       map.current.removeLayer("selectedTrail");
       map.current.removeSource("selectedTrail");
     }
+    marker.current?.remove();
+  };
+
+  const fitBoundsWithBbox = (west: number, north: number, east: number, south: number) => {
+    map.current?.fitBounds(
+      [[west, north], [east, south]],
+      {
+        padding: {top: 100, bottom: 50, left: 60, right: 60},
+        linear: true
+      }
+    )
   };
 
   const flyToTrail = () => {
     if (map.current === null) return;
     const [east, north, west, south] = selectedTrail?.geometry.bbox as number[];
-    map.current.fitBounds(
-      [[west, north], [east, south]],
-      {
-        padding: {top: 20, bottom: 20, left: 30, right: 30},
-        linear: true
-      }
-    )
+    fitBoundsWithBbox(west, north, east, south);
   };
 
   const moveMarker = () => {
@@ -109,7 +128,16 @@ export default function MapArea({ selectedTrail }: Props) {
     if (map.current) {
       marker.current?.setLngLat(trailHeadCoord as LngLatLike).addTo(map.current);
     }
-  }
+  };
+
+  const removeAllPOI = () => {
+    POIMarkers.forEach((marker: Marker) => marker.remove())
+    setPOIMarkers([]);
+  };
+
+  const changeStyle = (styleURL: string) => {
+    map.current?.setStyle(styleURL);
+  };
   
   useEffect(() => {
     // Render a map and configure it
@@ -129,6 +157,7 @@ export default function MapArea({ selectedTrail }: Props) {
   }, []);
 
   useEffect(() => {
+    if (!selectedTrail) return;
     // Persist data when switching base layers (streets, satellites, etc)
     map.current?.on("style.load", () => {
       // When style has finished loading, invoke the following:
@@ -140,6 +169,7 @@ export default function MapArea({ selectedTrail }: Props) {
     clearDataFromMap();
     // Render trail data based on the trail selected in the sidebar
     if (map.current?.isStyleLoaded()) {
+      removeAllPOI();
       displayDataOnMap();
       moveMarker();
       flyToTrail();
@@ -148,12 +178,34 @@ export default function MapArea({ selectedTrail }: Props) {
 
   useEffect(() => {
     if (map.current?.isStyleLoaded()) marker.current?.setLngLat(mouseOverCoords as LngLatLike)
-  }, [mouseOverCoords])
+  }, [mouseOverCoords]);
 
-
-  const changeStyle = (styleURL: string) => {
-    map.current?.setStyle(styleURL);
-  };
+  // Move the map when a user submits a search result
+  useEffect(() => {
+    if (map.current === null || searchResult === undefined) return;
+    clearDataFromMap();
+    removeAllPOI();
+    // If search result returns with a 'place' as the first result, center on that. eg. "Edmonton"
+    if (searchResult.features[0].place_type[0] === 'place') {
+      const [west, north, east, south] = searchResult.features[0].bbox as number[];
+      fitBoundsWithBbox(west, north, east, south);
+    } else {
+      // Create markers for each of the returned search results. eg. "Edmonton Costcos"
+      map.current.flyTo({
+        center: searchResult.features[0].center,
+        zoom: 11
+      })
+      const markers: Marker[] = [];
+      searchResult.features.forEach((feature: any) => {
+        const temp = new mapboxgl.Marker()
+        .setLngLat(feature.center)
+        .setPopup(new mapboxgl.Popup({ offset: 25 }).setText(`${feature.place_name}`))
+        .addTo(map.current as Map)
+        markers.push(temp);
+      })
+      setPOIMarkers(markers);
+    }
+  }, [searchResult])
 
   return (
     <StyledMapAreaContainer>
@@ -179,24 +231,15 @@ export default function MapArea({ selectedTrail }: Props) {
         })}
       </StyleBar>
       <StyledMapArea id="map" ref={mapContainer as RefObject<HTMLDivElement>} />
-
-      <ElevationToggle
-        onClick={() => setIsShowingElevation(!isShowingElevation)}
-      >
-        {isShowingElevation
-          ? "Hide Elevation Profile"
-          : "Show Elevation Profile"}
-      </ElevationToggle>
-      {isShowingElevation && (
         <ElevationProfile
           selectedTrail={selectedTrail}
           setMouseOverCoords={setMouseOverCoords}
         />
-      )}
     </StyledMapAreaContainer>
   );
 }
 
 MapArea.propTypes = {
   selectedTrail: PropTypes.object,
+  searchResult: PropTypes.object,
 };
