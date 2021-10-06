@@ -7,9 +7,10 @@ const StyledSidebar = styled.div`
   border: 2px solid lightgrey;
   border-radius: 5px;
   margin: 0 0.5em 0 0;
+  padding: 0 0 0 1em;
   width: 30%;
   display: flex;
-  justify-content: center;
+  justify-content: flex-start;
   height: 95vh;
   overflow-y: scroll;
 `;
@@ -17,6 +18,7 @@ const StyledSidebar = styled.div`
 const StyledTrailListContainer = styled.div`
   display: flex;
   flex-direction: column;
+  width: 90%;
 `;
 
 const StyledTrailSelector = styled.div`
