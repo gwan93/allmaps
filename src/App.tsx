@@ -1,6 +1,5 @@
 import 'mapbox-gl/dist/mapbox-gl.css';
 import './App.css';
-// import Header from './components/Header';
 import Sidebar from './components/Sidebar';
 import MapArea from './components/MapArea';
 import styled from 'styled-components'
@@ -49,6 +48,7 @@ const getSearchResult = (search: string)=> {
 
 function App() {
   const [selectedTrail, setSelectedTrail] = useState<Feature<MultiLineString> | undefined>(undefined);
+  const [autoCompleteList, setAutoCompleteList] = useState<FeatureCollection | undefined>(undefined);
   const [searchResult, setSearchResult] = useState<FeatureCollection | undefined>(undefined);
   
   const trailHandler = (trail: Trail) => {
@@ -57,19 +57,45 @@ function App() {
     });
   };
 
+  // When user hits 'enter' on search bar
+  // If search term is <= 4 characters, display a list for suggested search results to select from
   const searchHandler = (searchTerm: string) => {
     setSelectedTrail(undefined);
-    getSearchResult(searchTerm).then((response: FeatureCollection) =>
-      setSearchResult(response)
-    );
+    getSearchResult(searchTerm).then((response: FeatureCollection) => {
+      if (searchTerm.length <= 4) {
+        setAutoCompleteList(response);
+      } else {
+        setSearchResult(response)
+      }
+    });
   };
+
+  // Search function as user is typing in the search input
+  // Only perform autocomplete search when string length is greater than 4
+  const autoCompleteHandler = (searchTerm: string) => {
+    setSelectedTrail(undefined);
+    if (searchTerm?.length > 4) {
+      getSearchResult(searchTerm).then((response: FeatureCollection) => {
+        setAutoCompleteList(response);
+      })
+    }
+  }
+
+  const previewOnClick = (result: any) => {
+    setSearchResult(result);
+  }
   
   return (
     <StyledAppContainer>
-      {/* <Header/> */}
       <StyledContainer className="main-container">
-        <Sidebar trailHandler={trailHandler} searchHandler={searchHandler}/>
-        <MapArea selectedTrail={selectedTrail} searchResult={searchResult}/>
+        <Sidebar
+          trailHandler={trailHandler}
+          searchHandler={searchHandler}
+          autoCompleteList={autoCompleteList}
+          previewOnClick={previewOnClick}
+          autoCompleteHandler={autoCompleteHandler}
+        />
+        <MapArea selectedTrail={selectedTrail} searchResult={searchResult} />
       </StyledContainer>
     </StyledAppContainer>
   );
