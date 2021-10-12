@@ -46,27 +46,11 @@ const StyleBar = styled.div`
   margin: 12px;
   border-radius: 4px;
 `
-// const ElevationToggle = styled.div`
-//   border: 2px solid lightgrey;
-//   background-color: white;
-//   border-radius: 5px;
-//   height: 2em;
-//   margin-top: 5px;
-//   display: flex;
-//   justify-content: center;
-//   align-items: center;
-//   &:hover {
-//     border-color: #75cff0; 
-//     background-color: #75cff0;
-//     cursor: pointer;
-//   }
-// `
 
 export default function MapArea({ selectedTrail, searchResult }: Props) {
   const mapContainer = useRef<HTMLDivElement | string>('');
   const map = useRef<Map | null>(null);
   const marker = useRef<Marker | null>(null);
-  // const [isShowingElevation, setIsShowingElevation] = useState<boolean>(true);
   const [mouseOverCoords, setMouseOverCoords] = useState<LngLatLike | undefined>(undefined);
   const [POIMarkers, setPOIMarkers] = useState<Marker[]>([]);
 
@@ -185,27 +169,41 @@ export default function MapArea({ selectedTrail, searchResult }: Props) {
     if (map.current === null || searchResult === undefined) return;
     clearDataFromMap();
     removeAllPOI();
-    // If search result returns with a 'place' as the first result, center on that. eg. "Edmonton"
-    if (searchResult.features[0].place_type[0] === 'place') {
-      const [west, north, east, south] = searchResult.features[0].bbox as number[];
-      fitBoundsWithBbox(west, north, east, south);
-    } else {
-      // Create markers for each of the returned search results. eg. "Edmonton Costcos"
+    // When user hits enter on search bar
+    if (searchResult.type === "FeatureCollection") {
+      if (searchResult.features[0]?.place_type[0] === 'place') {
+        // If search result returns with a 'place' as the first result, center on that. eg. "Edmonton"
+        const [west, north, east, south] = searchResult.features[0].bbox as number[];
+        fitBoundsWithBbox(west, north, east, south);
+      } else {
+        // Create markers for each of the returned search results. eg. "Edmonton Costcos"
+        map.current.flyTo({
+          center: searchResult.features[0].center,
+          zoom: 11
+        })
+        addSearchMarkersToMap(searchResult.features);
+      }
+    // When user selects a result from the search autocomplete results
+    } else if (searchResult.type === "Feature") {
       map.current.flyTo({
-        center: searchResult.features[0].center,
+        center: searchResult.center,
         zoom: 11
       })
-      const markers: Marker[] = [];
-      searchResult.features.forEach((feature: any) => {
-        const temp = new mapboxgl.Marker()
+      addSearchMarkersToMap([searchResult]);
+    }
+  }, [searchResult])
+
+  const addSearchMarkersToMap = (markerData: any) => {
+    const markers: Marker[] = [];
+    markerData.forEach((feature: any) => {
+      const temp = new mapboxgl.Marker()
         .setLngLat(feature.center)
         .setPopup(new mapboxgl.Popup({ offset: 25 }).setText(`${feature.place_name}`))
         .addTo(map.current as Map)
-        markers.push(temp);
-      })
-      setPOIMarkers(markers);
-    }
-  }, [searchResult])
+      markers.push(temp);
+    })
+    setPOIMarkers(markers);
+  }
 
   return (
     <StyledMapAreaContainer>
