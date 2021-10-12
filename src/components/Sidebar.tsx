@@ -1,7 +1,11 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef, RefObject } from "react";
 import styled from "styled-components";
 import PropTypes from "prop-types";
 import SearchBar from "./SearchBar";
+import { FeatureCollection } from "geojson";
+import PreviewResults from "./PreviewResults";
+
+const PreviewRefContainer = styled.div``;
 
 const StyledSidebar = styled.div`
   border: 2px solid lightgrey;
@@ -36,6 +40,9 @@ const getTrails = () => {
 interface Props {
   trailHandler: (trail: Trail) => void;
   searchHandler: (searchTerm: string) => void;
+  autoCompleteList: FeatureCollection | undefined;
+  previewOnClick: (result: any) => void;
+  autoCompleteHandler: (searchTerm: string) => void;
 }
 
 interface Trail {
@@ -43,8 +50,18 @@ interface Trail {
   filename: string;
 }
 
-export default function Sidebar({ trailHandler, searchHandler }: Props) {
+export default function Sidebar({
+  trailHandler,
+  searchHandler,
+  autoCompleteList,
+  previewOnClick,
+  autoCompleteHandler,
+}: Props) {
+
+  const wrapperRef = useRef<HTMLDivElement | null>(null);
+  useOutsideAlerter(wrapperRef);
   const [trails, setTrails] = useState<[]>([]);
+  const [showPreview, setShowPreview] = useState(false);
 
   useEffect(() => {
     getTrails().then(({ trails }) => {
@@ -52,11 +69,41 @@ export default function Sidebar({ trailHandler, searchHandler }: Props) {
     });
   }, []);
 
+  // Closes the previews when the user clicks somewhere else in the app
+  function useOutsideAlerter(ref: React.MutableRefObject<HTMLDivElement | null>) {
+    useEffect(() => {
+      if (ref.current === null) return;
+      function handleClickOutside(event: MouseEvent) {
+        if (!ref.current?.contains(event.target as Node)) {
+          setShowPreview(false);
+        }
+      }
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => {
+        // Unbind the event listener on clean up
+        document.removeEventListener("mousedown", handleClickOutside);
+      };
+    }, [ref]);
+  }
+
   return (
     <StyledSidebar>
       <StyledTrailListContainer>
         <h1>AllMaps</h1>
-        <SearchBar searchHandler={searchHandler} />
+        <SearchBar
+          searchHandler={searchHandler}
+          autoCompleteHandler={autoCompleteHandler}
+          setShowPreview={setShowPreview}
+        />
+        <PreviewRefContainer ref={wrapperRef as RefObject<HTMLDivElement>}>
+          {showPreview && (
+            <PreviewResults
+              autoCompleteList={autoCompleteList}
+              previewOnClick={previewOnClick}
+              setShowPreview={setShowPreview}
+            />
+          )}
+        </PreviewRefContainer>
         <h2>Saved Trails</h2>
         {trails.map((trail: Trail) => {
           return (
@@ -75,5 +122,8 @@ export default function Sidebar({ trailHandler, searchHandler }: Props) {
 
 Sidebar.propTypes = {
   trailHandler: PropTypes.func,
-  searchHandler: PropTypes.func
+  searchHandler: PropTypes.func,
+  autoCompleteList: PropTypes.object,
+  previewOnClick: PropTypes.func,
+  autoCompleteHandler: PropTypes.func,
 };
