@@ -1,6 +1,8 @@
 import React, { useState, MouseEvent } from "react";
-import PropTypes from 'prop-types';
+import PropTypes from "prop-types";
 import styled from "styled-components";
+import { useCallback } from "react";
+const debounce = require("lodash.debounce");
 
 const Input = styled.input`
   box-sizing: border-box;
@@ -20,7 +22,7 @@ const Button = styled.button`
   border: 2px solid lightgrey;
   border-radius: 5px;
   padding: 10px;
-  margin: 1px 0 1px 0;
+  margin: 1px 0 15px 0;
   width: 100%;
   &:hover {
     border-color: #75cff0;
@@ -31,15 +33,32 @@ const Button = styled.button`
 
 interface Props {
   searchHandler: (searchTerm: string) => void;
+  autoCompleteHandler: (searchTerm: string) => void;
+  setShowPreview: (bool: boolean) => void;
 }
 
-export default function SearchBar({ searchHandler }: Props) {
+export default function SearchBar({
+  searchHandler,
+  autoCompleteHandler,
+  setShowPreview,
+}: Props) {
+
   const [search, setSearch] = useState<string>("");
 
   const handleSubmit = (e: MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     if (!search) return;
     searchHandler(search);
+  };
+
+  const debounceSearchResults = useCallback(
+    debounce((search: string) => autoCompleteHandler(search), 500), []
+  );
+
+  const onInputChangeHandler = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearch(e.target.value);
+    debounceSearchResults(e.target.value);
+    setShowPreview(true);
   };
 
   return (
@@ -49,7 +68,8 @@ export default function SearchBar({ searchHandler }: Props) {
         <Input
           value={search}
           placeholder="eg. 'Toronto, ON'"
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={(e) => onInputChangeHandler(e)}
+          onClick={() => setShowPreview(true)}
         />
         <Button type="submit" onClick={handleSubmit}>
           Search
@@ -61,4 +81,6 @@ export default function SearchBar({ searchHandler }: Props) {
 
 SearchBar.propTypes = {
   searchHandler: PropTypes.func,
+  autoCompleteHandler: PropTypes.func,
+  setShowPreview: PropTypes.func,
 };
