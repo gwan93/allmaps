@@ -49,7 +49,7 @@ export default function MapArea({ selectedTrail, searchResult }: Props) {
   const map = useRef<Map | null>(null);
   const marker = useRef<Marker | null>(null);
   const [mouseOverCoords, setMouseOverCoords] = useState<LngLatLike | undefined>(undefined);
-  const [POIMarkers, setPOIMarkers] = useState<Marker[]>([]);
+  // const [POIMarkers, setPOIMarkers] = useState<Marker[]>([]);
 
   // Component Methods/Functions
   const displayDataOnMap = () => {
@@ -85,8 +85,13 @@ export default function MapArea({ selectedTrail, searchResult }: Props) {
     }
     marker.current?.remove();
 
-    POIMarkers.forEach((marker: Marker) => marker.remove())
-    setPOIMarkers([]);
+    if (map.current.getLayer("markers")) {
+      map.current.removeLayer("markers");
+      map.current.removeSource("markers")
+    }
+
+    // POIMarkers.forEach((marker: Marker) => marker.remove())
+    // setPOIMarkers([]);
   };
 
   const fitBoundsWithBbox = (west: number, north: number, east: number, south: number) => {
@@ -169,7 +174,7 @@ export default function MapArea({ selectedTrail, searchResult }: Props) {
         fitBoundsWithBbox(west, north, east, south);
       } else {
         // Create markers for each of the returned search results. eg. "Edmonton Costcos"
-        map.current.flyTo({
+        map.current?.flyTo({
           center: searchResult.features[0].center,
           zoom: 11
         })
@@ -177,7 +182,7 @@ export default function MapArea({ selectedTrail, searchResult }: Props) {
       }
     // When user selects a result from the search autocomplete results
     } else if (searchResult.type === "Feature") {
-      map.current.flyTo({
+      map.current?.flyTo({
         center: searchResult.center,
         zoom: 11
       })
@@ -186,54 +191,51 @@ export default function MapArea({ selectedTrail, searchResult }: Props) {
   }, [searchResult])
 
   const addSearchMarkersToMap = (markerData: any) => {
-    const markers: Marker[] = [];
-    markerData.forEach((feature: any) => {
-      const marker = new mapboxgl.Marker()
-        .setLngLat(feature.center)
-        .setPopup(new mapboxgl.Popup({ offset: 25 }).setText(`${feature.place_name}`))
-        .addTo(map.current as Map)
-      markers.push(marker);
+    // Add 'place_name' key and its value to the properties object
+    // This allows the marker event to have access to the value of 'place_name'
+    markerData.forEach((marker: any) => {
+      marker.properties['place_name'] = marker.place_name;
     })
-    setPOIMarkers(markers);
-    // console.log("markerData", markerData);
-    // console.log("getsource", map.current?.getSource("markers"));
 
-    // if (!map.current?.getSource("markers")) {
-    //   map.current?.addSource("markers", {
-    //     type: "geojson",
-    //     data: {
-    //       type: "FeatureCollection",
-    //       features: [...markerData],
-    //     },
-    //   });
-    //   map.current?.addLayer({
-    //     id: "markers",
-    //     type: "circle",
-    //     source: "markers",
-    //     paint: {
-    //       "circle-radius": 10,
-    //       "circle-color": "#007cbf",
-    //     },
-    //   });
-    // }
+    map.current?.loadImage(
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/8/88/Map_marker.svg/780px-Map_marker.svg.png",
+      (error, image) => {
+        if (error) throw error;
 
-    // map.current?.on('click', 'markers', (e) => {
-    //   console.log('e', e)
-      // console.log('coordinates', e.features[0].geometry.coordinates.slice())
+        if (!map.current?.hasImage("blueMarker")) {
+          map.current?.addImage("blueMarker", image as HTMLImageElement);
+        }
 
-    // })
+        map.current?.addSource("markers", {
+          type: "geojson",
+          data: {
+            type: "FeatureCollection",
+            features: [...markerData],
+          },
+        });
 
-    // map.current?.on('mouseenter', 'places', () => {
-    //   if (map.current) {
-    //     map.current.getCanvas().style.cursor = 'pointer';
-    //   }
-    // })
+        map.current?.addLayer({
+          id: "markers",
+          type: "symbol",
+          source: "markers",
+          layout: {
+            'icon-image': 'blueMarker',
+            'icon-size': 0.03,
+            'icon-allow-overlap': true
+          }
+        });
+      }
+    );
 
-    // map.current?.on('mouseleave', 'markers', () => {
-    //   if (map.current) {
-    //     map.current.getCanvas().style.cursor = '';
-    //   }
-    // })
+    map.current?.on('click', 'markers', (e: any) => {
+      const coordinates = e.features[0].geometry.coordinates.slice();
+      const description = e.features[0].properties.place_name
+
+      new mapboxgl.Popup()
+      .setLngLat(coordinates)
+      .setHTML(`<p>${description}</p>`)
+      .addTo(map.current as Map)
+    })
   };
 
   return (
