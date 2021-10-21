@@ -35,7 +35,8 @@ export default function PreviewResults({
   return (
     <>
       {autoCompleteList?.features.map((result: any) => (
-        <Preview key={result.place_name} onClick={() => previewOnClick(result)}>
+        // use onMouseDown instead of onClick to prevent conflict with searchBar onBlur
+        <Preview key={result.place_name} onMouseDown={() => previewOnClick(result)}>
           {result.place_name}
         </Preview>
       ))}
