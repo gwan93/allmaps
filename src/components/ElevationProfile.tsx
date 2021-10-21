@@ -9,9 +9,11 @@ import CanvasJSReact from "../assets/lib/canvasjs.react.js";
 const { CanvasJSChart } = CanvasJSReact;
 
 const StyledElevationProfile = styled.header`
+  border: 2px solid lightgrey;
+  border-radius: 5px;
   display: flex;
   justify-content: center;
-  height: 20%;
+  height: 220px;
 `;
 
 interface Props {
@@ -40,8 +42,8 @@ export default function ElevationProfile({ selectedTrail, setMouseOverCoords }: 
     const output: OutputElements[] = [];
     if (selectedTrail === undefined) return output;
     const coordinateArr: Position[] = selectedTrail.geometry.coordinates[0];
-    coordinateArr.forEach((coordinate: any, i) => {
-      const previousCoordinate: any = i === 0 ? coordinate : coordinateArr[i - 1];
+    coordinateArr.forEach((coordinate: number[], i) => {
+      const previousCoordinate: number[] = i === 0 ? coordinate : coordinateArr[i - 1];
       const distanceFromBeginning: number =
         i === 0
           ? 0
@@ -53,7 +55,7 @@ export default function ElevationProfile({ selectedTrail, setMouseOverCoords }: 
         x: distanceFromBeginning,
         y: coordinate[2],
         toolTipContent: "Elevation: {y}m",
-        mouseover: () => setMouseOverCoords(coordinate)
+        mouseover: () => setMouseOverCoords(coordinate as LngLatLike)
       })
     })
     return output;
