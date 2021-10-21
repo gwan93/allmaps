@@ -6,9 +6,8 @@ import styled from "styled-components";
 const Preview = styled.div`
   border: 1px solid lightgrey;
   padding: 5px;
-  margin: 0 5px 0 5px;
+  margin: 0 5px;
   &:hover {
-    border-color: lightgrey;
     background-color: lightgrey;
     cursor: pointer;
   }

@@ -27,10 +27,7 @@ const BASE_LAYERS_ARRAY = [
   {label: 'Dark', value: 'dark-v10'}
 ]
 const StyledMapArea = styled.div`
-  // display: flex;
-  // flex-direction: row;
-  // flex-grow: 1
-  height: 78vh;
+  height: calc(100% - 220px); // minus the height of ElevationProfile
 `
 const StyledMapAreaContainer = styled.div`
   flex: 1;
@@ -87,6 +84,9 @@ export default function MapArea({ selectedTrail, searchResult }: Props) {
       map.current.removeSource("selectedTrail");
     }
     marker.current?.remove();
+
+    POIMarkers.forEach((marker: Marker) => marker.remove())
+    setPOIMarkers([]);
   };
 
   const fitBoundsWithBbox = (west: number, north: number, east: number, south: number) => {
@@ -100,7 +100,6 @@ export default function MapArea({ selectedTrail, searchResult }: Props) {
   };
 
   const flyToTrail = () => {
-    if (map.current === null) return;
     const [east, north, west, south] = selectedTrail?.geometry.bbox as number[];
     fitBoundsWithBbox(west, north, east, south);
   };
@@ -112,11 +111,6 @@ export default function MapArea({ selectedTrail, searchResult }: Props) {
     if (map.current) {
       marker.current?.setLngLat(trailHeadCoord as LngLatLike).addTo(map.current);
     }
-  };
-
-  const removeAllPOI = () => {
-    POIMarkers.forEach((marker: Marker) => marker.remove())
-    setPOIMarkers([]);
   };
 
   const changeStyle = (styleURL: string) => {
@@ -153,7 +147,6 @@ export default function MapArea({ selectedTrail, searchResult }: Props) {
     clearDataFromMap();
     // Render trail data based on the trail selected in the sidebar
     if (map.current?.isStyleLoaded()) {
-      removeAllPOI();
       displayDataOnMap();
       moveMarker();
       flyToTrail();
@@ -168,7 +161,6 @@ export default function MapArea({ selectedTrail, searchResult }: Props) {
   useEffect(() => {
     if (map.current === null || searchResult === undefined) return;
     clearDataFromMap();
-    removeAllPOI();
     // When user hits enter on search bar
     if (searchResult.type === "FeatureCollection") {
       if (searchResult.features[0]?.place_type[0] === 'place') {
@@ -196,14 +188,53 @@ export default function MapArea({ selectedTrail, searchResult }: Props) {
   const addSearchMarkersToMap = (markerData: any) => {
     const markers: Marker[] = [];
     markerData.forEach((feature: any) => {
-      const temp = new mapboxgl.Marker()
+      const marker = new mapboxgl.Marker()
         .setLngLat(feature.center)
         .setPopup(new mapboxgl.Popup({ offset: 25 }).setText(`${feature.place_name}`))
         .addTo(map.current as Map)
-      markers.push(temp);
+      markers.push(marker);
     })
     setPOIMarkers(markers);
-  }
+    // console.log("markerData", markerData);
+    // console.log("getsource", map.current?.getSource("markers"));
+
+    // if (!map.current?.getSource("markers")) {
+    //   map.current?.addSource("markers", {
+    //     type: "geojson",
+    //     data: {
+    //       type: "FeatureCollection",
+    //       features: [...markerData],
+    //     },
+    //   });
+    //   map.current?.addLayer({
+    //     id: "markers",
+    //     type: "circle",
+    //     source: "markers",
+    //     paint: {
+    //       "circle-radius": 10,
+    //       "circle-color": "#007cbf",
+    //     },
+    //   });
+    // }
+
+    // map.current?.on('click', 'markers', (e) => {
+    //   console.log('e', e)
+      // console.log('coordinates', e.features[0].geometry.coordinates.slice())
+
+    // })
+
+    // map.current?.on('mouseenter', 'places', () => {
+    //   if (map.current) {
+    //     map.current.getCanvas().style.cursor = 'pointer';
+    //   }
+    // })
+
+    // map.current?.on('mouseleave', 'markers', () => {
+    //   if (map.current) {
+    //     map.current.getCanvas().style.cursor = '';
+    //   }
+    // })
+  };
 
   return (
     <StyledMapAreaContainer>
@@ -229,10 +260,10 @@ export default function MapArea({ selectedTrail, searchResult }: Props) {
         })}
       </StyleBar>
       <StyledMapArea id="map" ref={mapContainer as RefObject<HTMLDivElement>} />
-        <ElevationProfile
-          selectedTrail={selectedTrail}
-          setMouseOverCoords={setMouseOverCoords}
-        />
+      <ElevationProfile
+        selectedTrail={selectedTrail}
+        setMouseOverCoords={setMouseOverCoords}
+      />
     </StyledMapAreaContainer>
   );
 }

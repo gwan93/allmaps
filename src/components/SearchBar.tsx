@@ -1,4 +1,4 @@
-import React, { useState, MouseEvent } from "react";
+import React, { useState } from "react";
 import PropTypes from "prop-types";
 import styled from "styled-components";
 import { useCallback } from "react";
@@ -17,20 +17,6 @@ const Input = styled.input`
   }
 `;
 
-const Button = styled.button`
-  background-color: white;
-  border: 2px solid lightgrey;
-  border-radius: 5px;
-  padding: 10px;
-  margin: 1px 0 15px 0;
-  width: 100%;
-  &:hover {
-    border-color: #75cff0;
-    background-color: #75cff0;
-    cursor: pointer;
-  }
-`;
-
 interface Props {
   searchHandler: (searchTerm: string) => void;
   autoCompleteHandler: (searchTerm: string) => void;
@@ -45,7 +31,7 @@ export default function SearchBar({
 
   const [search, setSearch] = useState<string>("");
 
-  const handleSubmit = (e: MouseEvent<HTMLButtonElement>) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!search) return;
     searchHandler(search);
@@ -64,16 +50,14 @@ export default function SearchBar({
   return (
     <>
       <h2>Search</h2>
-      <form>
+      <form onSubmit={handleSubmit}>
         <Input
           value={search}
           placeholder="eg. 'Toronto, ON'"
-          onChange={(e) => onInputChangeHandler(e)}
+          onChange={onInputChangeHandler}
           onClick={() => setShowPreview(true)}
+          onBlur={() => setShowPreview(false)}
         />
-        <Button type="submit" onClick={handleSubmit}>
-          Search
-        </Button>
       </form>
     </>
   );

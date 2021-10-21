@@ -16,7 +16,7 @@ const StyledContainer = styled.div`
 const StyledAppContainer = styled.div`
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  max-height: 100vh;
 `
 
 interface Trail {
@@ -43,13 +43,13 @@ const getSearchResult = (search: string)=> {
   Object.keys(queryParams).forEach((key) => 
     baseURL.searchParams.append(key, queryParams[key] as string)
   )
-  return fetch(baseURL as unknown as string).then((response) => response.json())
+  return fetch(baseURL as any).then((response) => response.json())
 };
 
 function App() {
-  const [selectedTrail, setSelectedTrail] = useState<Feature<MultiLineString> | undefined>(undefined);
-  const [autoCompleteList, setAutoCompleteList] = useState<FeatureCollection | undefined>(undefined);
-  const [searchResult, setSearchResult] = useState<FeatureCollection | undefined>(undefined);
+  const [selectedTrail, setSelectedTrail] = useState<Feature<MultiLineString> | undefined>();
+  const [autoCompleteList, setAutoCompleteList] = useState<FeatureCollection | undefined>();
+  const [searchResult, setSearchResult] = useState<FeatureCollection | undefined>();
   
   const trailHandler = (trail: Trail) => {
     getTrailData(trail.filename).then((response) => {

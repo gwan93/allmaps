@@ -11,10 +11,9 @@ const { CanvasJSChart } = CanvasJSReact;
 const StyledElevationProfile = styled.header`
   border: 2px solid lightgrey;
   border-radius: 5px;
-  margin: 1vh 0 0 0;
   display: flex;
   justify-content: center;
-  height: 16vh;
+  height: 220px;
 `;
 
 interface Props {
