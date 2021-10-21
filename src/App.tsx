@@ -43,7 +43,7 @@ const getSearchResult = (search: string)=> {
   Object.keys(queryParams).forEach((key) => 
     baseURL.searchParams.append(key, queryParams[key] as string)
   )
-  return fetch(baseURL as any).then((response) => response.json())
+  return fetch(baseURL.toString()).then((response) => response.json())
 };
 
 function App() {
