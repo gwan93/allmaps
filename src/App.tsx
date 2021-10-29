@@ -4,7 +4,7 @@ import Sidebar from './components/Sidebar';
 import MapArea from './components/MapArea';
 import styled from 'styled-components'
 import React, { useState } from 'react';
-import { Feature, MultiLineString } from "geojson";
+import { Feature, MultiLineString, FeatureCollection } from "geojson";
 
 const StyledContainer = styled.div`
   display: flex;
@@ -16,12 +16,16 @@ const StyledContainer = styled.div`
 const StyledAppContainer = styled.div`
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  max-height: 100vh;
 `
 
 interface Trail {
   name: string;
   filename: string;
+}
+
+interface QueryParams {
+  [key: string]: string | number | undefined;
 }
 
 const getTrailData = (trailFilename: string) => 
@@ -30,8 +34,22 @@ const getTrailData = (trailFilename: string) =>
   .then((res) => res.features.find((feature: Feature) => feature.geometry.type === "MultiLineString"))
 ;
 
+const getSearchResult = (search: string)=> {
+  const baseURL = new URL(`https://api.mapbox.com/geocoding/v5/mapbox.places/${search}.json`)
+  const queryParams: QueryParams = {
+    "access_token": process.env.REACT_APP_MAPBOX_TOKEN,
+    "limit": 10
+  }
+  Object.keys(queryParams).forEach((key) => 
+    baseURL.searchParams.append(key, queryParams[key] as string)
+  )
+  return fetch(baseURL.toString()).then((response) => response.json())
+};
+
 function App() {
-  const [selectedTrail, setSelectedTrail] = useState<Feature<MultiLineString> | undefined>(undefined);
+  const [selectedTrail, setSelectedTrail] = useState<Feature<MultiLineString> | undefined>();
+  const [autoCompleteList, setAutoCompleteList] = useState<FeatureCollection | undefined>();
+  const [searchResult, setSearchResult] = useState<FeatureCollection | undefined>();
   
   const trailHandler = (trail: Trail) => {
     getTrailData(trail.filename).then((response) => {
@@ -39,13 +57,45 @@ function App() {
     });
   };
 
+  // When user hits 'enter' on search bar
+  // If search term is <= 4 characters, display a list for suggested search results to select from
+  const searchHandler = (searchTerm: string) => {
+    setSelectedTrail(undefined);
+    getSearchResult(searchTerm).then((response: FeatureCollection) => {
+      if (searchTerm.length <= 4) {
+        setAutoCompleteList(response);
+      } else {
+        setSearchResult(response)
+      }
+    });
+  };
 
+  // Search function as user is typing in the search input
+  // Only perform autocomplete search when string length is greater than 4
+  const autoCompleteHandler = (searchTerm: string) => {
+    setSelectedTrail(undefined);
+    if (searchTerm?.length > 4) {
+      getSearchResult(searchTerm).then((response: FeatureCollection) => {
+        setAutoCompleteList(response);
+      })
+    }
+  }
+
+  const previewOnClick = (result: any) => {
+    setSearchResult(result);
+  }
   
   return (
     <StyledAppContainer>
       <StyledContainer className="main-container">
-        <Sidebar trailHandler={trailHandler}/>
-        <MapArea selectedTrail={selectedTrail} />
+        <Sidebar
+          trailHandler={trailHandler}
+          searchHandler={searchHandler}
+          autoCompleteList={autoCompleteList}
+          previewOnClick={previewOnClick}
+          autoCompleteHandler={autoCompleteHandler}
+        />
+        <MapArea selectedTrail={selectedTrail} searchResult={searchResult} />
       </StyledContainer>
     </StyledAppContainer>
   );

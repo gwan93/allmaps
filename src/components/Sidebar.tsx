@@ -2,6 +2,9 @@ import React, { useEffect, useState } from "react";
 import styled from "styled-components";
 import PropTypes from "prop-types";
 import FilterBar from './FilterBar';
+import SearchBar from "./SearchBar";
+import { FeatureCollection } from "geojson";
+import PreviewResults from "./PreviewResults";
 
 const StyledSidebar = styled.div`
   border: 2px solid lightgrey;
@@ -18,13 +21,14 @@ const StyledSidebar = styled.div`
 const StyledTrailListContainer = styled.div`
   display: flex;
   flex-direction: column;
-  width: 90%;
+  margin: 0 0.5em;
+  width: 100%;
 `;
 
 const StyledTrailSelector = styled.div`
   border: 2px solid lightgrey;
   padding: 10px;
-  margin: 2px 0 2px 0;
+  margin: 2px 0;
   border-radius: 5px;
   &:hover {
     border-color: #75cff0;
@@ -56,6 +60,10 @@ const getTrails = () => {
 
 interface Props {
   trailHandler: (trail: Trail) => void;
+  searchHandler: (searchTerm: string) => void;
+  autoCompleteList: FeatureCollection | undefined;
+  previewOnClick: (result: any) => void;
+  autoCompleteHandler: (searchTerm: string) => void;
 }
 
 interface Trail {
@@ -65,8 +73,16 @@ interface Trail {
   difficulty: string;
 }
 
-export default function Sidebar({ trailHandler }: Props) {
+
+export default function Sidebar({
+  trailHandler,
+  searchHandler,
+  autoCompleteList,
+  previewOnClick,
+  autoCompleteHandler,
+}: Props) {
   const [trails, setTrails] = useState<[]>([]);
+  const [showPreview, setShowPreview] = useState(false);
   const [filteredTrails, setFilteredTrails] = useState<Trail[]>([]);
   const [filterTerm, setFilterTerm] = useState<string>("");
 
@@ -95,6 +111,18 @@ export default function Sidebar({ trailHandler }: Props) {
     <StyledSidebar>
       <StyledTrailListContainer>
         <h1>AllMaps</h1>
+        <SearchBar
+          searchHandler={searchHandler}
+          autoCompleteHandler={autoCompleteHandler}
+          setShowPreview={setShowPreview}
+        />
+        {showPreview && (
+          <PreviewResults
+            autoCompleteList={autoCompleteList}
+            previewOnClick={previewOnClick}
+            setShowPreview={setShowPreview}
+          />
+        )}
         <h2>Saved Trails</h2>
         <FilterBar filterTerm={filterTerm} setFilterTerm={setFilterTerm}/>
         {filteredTrails.map((trail: Trail) => {
@@ -118,5 +146,9 @@ export default function Sidebar({ trailHandler }: Props) {
 
 Sidebar.propTypes = {
   trailHandler: PropTypes.func,
+  searchHandler: PropTypes.func,
+  autoCompleteList: PropTypes.object,
+  previewOnClick: PropTypes.func,
+  autoCompleteHandler: PropTypes.func,
 };
 
