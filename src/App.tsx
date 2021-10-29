@@ -4,7 +4,7 @@ import Sidebar from './components/Sidebar';
 import MapArea from './components/MapArea';
 import styled from 'styled-components'
 import React, { useState } from 'react';
-import { Feature, FeatureCollection, MultiLineString } from "geojson";
+import { Feature, MultiLineString, FeatureCollection } from "geojson";
 
 const StyledContainer = styled.div`
   display: flex;
@@ -102,3 +102,4 @@ function App() {
 }
 
 export default App;
+

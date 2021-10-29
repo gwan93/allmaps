@@ -1,24 +1,112 @@
 {
   "trails": [
     {
+      "name": "Boucher Forest Loop",
+      "filename": "boucher-forest-loop.geojson",
+      "province": "Quebec",
+      "difficulty": "Easy"
+    },
+    {
+      "name": "Boucle des Sentiers Uashat",
+      "filename": "boucle-des-sentiers-uashat.geojson",
+      "province": "Quebec",
+      "difficulty": "Hard"
+    },
+    {
+      "name": "Cardinal Creek Trail",
+      "filename": "cardinal-creek-trail.geojson",
+      "province": "Ontario",
+      "difficulty": "Easy"
+    },
+    {
+      "name": "East End of Rundle",
+      "filename": "east-end-of-rundle.geojson",
+      "province": "Alberta",
+      "difficulty": "Hard"
+    },
+    {
+      "name": "Goodsir Nature Park Loop",
+      "filename": "goodsir-nature-park-loop.geojson",
+      "province": "British Columbia",
+      "difficulty": "Easy"
+    },
+    {
       "name": "Grotto Canyon Trail",
-      "filename": "grotto-canyon-trail.geojson"
+      "filename": "grotto-canyon-trail.geojson",
+      "province": "Alberta",
+      "difficulty": "Easy"
     },
     {
       "name": "Ha Ling Peak",
-      "filename": "ha-ling-peak.geojson"
+      "filename": "ha-ling-peak.geojson",
+      "province": "Alberta",
+      "difficulty": "Hard"
+    },
+    {
+      "name": "Heart Creek Bunker",
+      "filename": "heart-creek-bunker.geojson",
+      "province": "Alberta",
+      "difficulty": "Easy"
+    },
+    {
+      "name": "Hixon Falls Trail",
+      "filename": "hixon-falls-trail.geojson",
+      "province": "British Columbia",
+      "difficulty": "Easy"
+    },
+    {
+      "name": "Johnston Canyon Trail",
+      "filename": "johnston-canyon-trail.geojson",
+      "province": "Alberta",
+      "difficulty": "Easy"
+    },
+    {
+      "name": "Lake Minnewanka Lakeside Trail",
+      "filename": "lake-minnewanka-lakeside-trail.geojson",
+      "province": "Alberta",
+      "difficulty": "Moderate"
+    },
+    {
+      "name": "Lusk Cave Trail",
+      "filename": "lusk-cave-trail.geojson",
+      "province": "Quebec",
+      "difficulty": "Easy"
     },
     {
       "name": "Mer Bleue Bog Trail",
-      "filename": "mer-bleue-bog-trail.geojson"
+      "filename": "mer-bleue-bog-trail.geojson",
+      "province": "Ontario",
+      "difficulty": "Easy"
+    },
+    {
+      "name": "Pink Lake",
+      "filename": "pink-lake.geojson",
+      "province": "Quebec",
+      "difficulty": "Easy"
     },
     {
       "name": "Ptarmigan Cirque",
-      "filename": "ptarmigan-cirque.geojson"
+      "filename": "ptarmigan-cirque.geojson",
+      "province": "Alberta",
+      "difficulty": "Moderate"
+    },
+    {
+      "name": "Sugarbowl Mountain Trail",
+      "filename": "sugarbowl-mountain-trail.geojson",
+      "province": "British Columbia",
+      "difficulty": "Hard"
     },
     {
       "name": "Sulphur Mountain Trail",
-      "filename": "sulphur-mountain-trail.geojson"
+      "filename": "sulphur-mountain-trail.geojson",
+      "province": "Alberta",
+      "difficulty": "Hard"
+    },
+    {
+      "name": "Troll Lake",
+      "filename": "troll-lake.geojson",
+      "province": "British Columbia",
+      "difficulty": "Moderate"
     }
   ]
 }
